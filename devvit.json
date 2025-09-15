@@ -30,5 +30,13 @@
   },
   "dev": {
     "subreddit": "lootofolympus_dev"
+  },
+  "scheduler": {
+    "tasks": {
+      "hourly-post-task": {
+        "endpoint": "/internal/scheduler/hourly-post",
+        "cron": "0 * * * *"
+      }
+    }
   }
 }

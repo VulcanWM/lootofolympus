@@ -169,6 +169,21 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
   }
 });
 
+router.post('/internal/scheduler/hourly-post', async (_req, res) => {
+  try {
+    const randomDelayMs = Math.floor(Math.random() * 15 * 60 * 1000); // up to 15 min
+    setTimeout(async () => {
+      const post = await createPost();
+      console.log(`[Scheduler] Random delayed post ${post.id} at ${new Date().toISOString()}`);
+    }, randomDelayMs);
+
+    res.status(200).json({ status: 'ok', message: 'Post scheduled' });
+  } catch (err) {
+    console.error('[Scheduler] Failed to schedule post', err);
+    res.status(500).json({ status: 'error', message: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 // Use router middleware
 app.use(router);
 
