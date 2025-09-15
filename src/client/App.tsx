@@ -1,11 +1,14 @@
 import { navigateTo } from '@devvit/web/client';
 import { useCounter } from './hooks/useCounter';
+import { context } from '@devvit/web/client';
 
 export const App = () => {
   const { count, username, loading, increment, decrement } = useCounter();
   return (
     <div className="flex relative flex-col justify-center items-center min-h-screen gap-4">
-      <img className="object-contain w-1/2 max-w-[250px] mx-auto" src="/snoo.png" alt="Snoo" />
+      <text className='mt-1 font-bold'>Post Data:</text>
+      <text>{JSON.stringify(context.postData, null, 2) ?? 'undefined'}</text>
+      {/*<img className="object-contain w-1/2 max-w-[250px] mx-auto" src="/snoo.png" alt="Snoo" />*/}
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-2xl font-bold text-center text-gray-900 ">
           {username ? `Hey ${username} 👋` : ''}
