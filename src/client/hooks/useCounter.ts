@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { InitResponse, IncrementResponse, DecrementResponse } from '../../shared/types/api';
+import { useState, useEffect } from 'react';
+import { InitResponse } from '../../shared/types/api';
 
 interface CounterState {
   right: number;
@@ -7,6 +7,9 @@ interface CounterState {
   username: string | null;
   loading: boolean;
   collectibles: string[];
+  itemStatus: 'idle' | 'correct' | 'wrong' | 'tooLate' | 'alreadyGot' | 'alreadyFailed';
+  claimCount: number;
+  maxClaims: number;
 }
 
 export const useCounter = () => {
@@ -16,55 +19,36 @@ export const useCounter = () => {
     username: null,
     loading: true,
     collectibles: [],
+    itemStatus: 'idle',
+    claimCount: 0,
+    maxClaims: 100,
   });
+
   const [postId, setPostId] = useState<string | null>(null);
 
-  // fetch initial data
   useEffect(() => {
     const init = async () => {
       try {
         const res = await fetch('/api/init');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: InitResponse = await res.json();
-        if (data.type !== 'init') throw new Error('Unexpected response');
-        setState({ right: data.right, wrong: data.wrong, username: data.username, loading: false, collectibles: data.collectibles });
+        setState({
+          right: data.right,
+          wrong: data.wrong,
+          username: data.username,
+          loading: false,
+          collectibles: data.collectibles,
+          itemStatus: data.itemStatus,
+          claimCount: data.claimCount,
+          maxClaims: data.maxClaims,
+        });
         setPostId(data.postId);
       } catch (err) {
-        console.error('Failed to init counter', err);
+        console.error(err);
         setState((prev) => ({ ...prev, loading: false }));
       }
     };
     void init();
   }, []);
 
-  const update = useCallback(
-    async (action: 'increment' | 'decrement') => {
-      if (!postId) {
-        console.error('No postId – cannot update counter');
-        return;
-      }
-      try {
-        const res = await fetch(`/api/${action}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: IncrementResponse | DecrementResponse = await res.json();
-        setState((prev) => ({ ...prev, count: data.count }));
-      } catch (err) {
-        console.error(`Failed to ${action}`, err);
-      }
-    },
-    [postId]
-  );
-
-  const increment = useCallback(() => update('increment'), [update]);
-  const decrement = useCallback(() => update('decrement'), [update]);
-
-  return {
-    ...state,
-    increment,
-    decrement,
-  } as const;
+  return { ...state, setState };
 };
