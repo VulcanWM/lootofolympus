@@ -29,16 +29,22 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
     }
 
     try {
-      const [count, username] = await Promise.all([
-        redis.get('count'),
-        reddit.getCurrentUsername(),
+      const username = await reddit.getCurrentUsername();
+
+      const [right, wrong] = await Promise.all([
+        redis.get(`user:${username}:right`),
+        redis.get(`user:${username}:wrong`),
       ]);
+
+      const collectibles = await redis.hKeys(`user:${username}:collectibles`);
 
       res.json({
         type: 'init',
         postId: postId,
-        count: count ? parseInt(count) : 0,
+        right: right ? parseInt(right) : 0,
+        wrong: wrong ? parseInt(wrong) : 0,
         username: username ?? 'anonymous',
+        collectibles, // <-- added here
       });
     } catch (error) {
       console.error(`API Init Error for post ${postId}:`, error);
@@ -50,6 +56,7 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
     }
   }
 );
+
 
 router.post<{ postId: string }, IncrementResponse | { status: string; message: string }, unknown>(
   '/api/increment',

@@ -7,6 +7,153 @@ export const createPost = async () => {
   }
 
 
+  const questions: {name: string, setName: string, imageUrl: string, question: string, answer: string}[] = [
+    /* ========== ILIAD SET (10) ========== */
+    {
+      name: "Achilles’ Shield",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/5/56/Shield_of_Achilles_detail_from_William_Blake.jpg",
+      question: "Which god forged Achilles’ shield for him?",
+      answer: "hephaestus",
+    },
+    {
+      name: "Briseis’ Brooch",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/9/91/Briseis_1810.jpg",
+      question: "Which woman’s capture causes a quarrel between Achilles and Agamemnon?",
+      answer: "briseis",
+    },
+    {
+      name: "Myrmidon Banner",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Achaean_warriors.jpg",
+      question: "What name is given to Achilles’ elite warriors led by him?",
+      answer: "myrmidons",
+    },
+    {
+      name: "Palladium Idol",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/1/10/Palladium_Museum.jpg",
+      question: "Which sacred image's removal was said to doom Troy?",
+      answer: "palladium",
+    },
+    {
+      name: "Chryseis’ Pendant",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/45/Chryseis_painting.jpg",
+      question: "Which priest’s daughter, taken from the Greeks, caused Apollo’s plague?",
+      answer: "chryseis",
+    },
+    {
+      name: "Ajax’s Great Shield",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/2/26/Ajax_and_Achilles_1812.jpg",
+      question: "Which hero is famed for his huge defensive shield and strength?",
+      answer: "ajax",
+    },
+    {
+      name: "Patroclus’ Sandal",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Patroclus_Greek_Armor.jpg",
+      question: "Whose death wearing Achilles’ armour spurs Achilles back into battle?",
+      answer: "patroclus",
+    },
+    {
+      name: "Scamander Stone",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/33/Scamander_river_bank.jpg",
+      question: "By what alternate name is the river Scamander known in the epics?",
+      answer: "xanthus",
+    },
+    {
+      name: "Doloneia Cloak",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/09/Dolon_and_Achilles.jpg",
+      question: "Which spy’s night mission and capture is narrated in the 'Doloneia'?",
+      answer: "dolon",
+    },
+    {
+      name: "Priam’s Shroud",
+      setName: "Iliad",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/6d/Priam_and_Achilles_painting.jpg",
+      question: "Which Trojan king begged Achilles for the ransom of Hector’s body?",
+      answer: "priam",
+    },
+    /* ========== GODS SET (10) ========== */
+    {
+      name: "Nike’s Wreath",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/47/Nike_of_Samothrace.jpg",
+      question: "Which winged goddess personifies victory?",
+      answer: "nike",
+    },
+    {
+      name: "Hecate’s Torch",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Hecate_triple.jpg",
+      question: "Which goddess, associated with crossroads and magic, carries torches?",
+      answer: "hecate",
+    },
+    {
+      name: "Pan’s Pipes",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/63/Pan_playing_pipes.jpg",
+      question: "Which rustic god is famed for his syrinx (panpipes)?",
+      answer: "pan",
+    },
+    {
+      name: "Hebe’s Cup",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Hebe_painting.jpg",
+      question: "Which goddess served ambrosia to the gods as cupbearer before Ganymede?",
+      answer: "hebe",
+    },
+    {
+      name: "Harmonia’s Necklace",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Harmonia_painting.jpg",
+      question: "Which object, given at a wedding, brought discord and misfortune in myth?",
+      answer: "necklace",
+    },
+    {
+      name: "Hestia’s Hearthstone",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/2/2b/Hestia_classical.jpg",
+      question: "Which virgin goddess presides over the hearth and domestic flame?",
+      answer: "hestia",
+    },
+    {
+      name: "Eris’ Apple",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/9/9a/Apple_of_Discord.jpg",
+      question: "Which goddess caused the judgement leading to the Trojan War by tossing a golden apple?",
+      answer: "eris",
+    },
+    {
+      name: "Prometheus’ Chain",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/1/17/Prometheus_torture.jpg",
+      question: "Which Titan stole fire for humans and was punished chained to a rock?",
+      answer: "prometheus",
+    },
+    {
+      name: "Hebe’s Ganymede Plaque",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Ganymede_abducted.jpg",
+      question: "Which beautiful youth was taken to Olympus to be cupbearer to the gods?",
+      answer: "ganymede",
+    },
+    {
+      name: "Ananke’s Rope",
+      setName: "Gods",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Ananke_mosaic.jpg",
+      question: "Which personification represents inevitability and necessity in Greek thought?",
+      answer: "ananke",
+    }
+  ]
+
+  const question = questions[Math.floor(Math.random() * questions.length)]!;
+
 
   return await reddit.submitCustomPost({
     splash: {
@@ -15,11 +162,11 @@ export const createPost = async () => {
     subredditName: subredditName,
     title: 'lootofolympus',
     postData: {
-      name: "name",
-      setName: "setName",
-      imageUrl: "imageUrl",
-      question: "question",
-      answer: "answer"
+      name: question.name,
+      setName: question.setName,
+      imageUrl: question.imageUrl,
+      question: question.question,
+      answer: question.answer,
     }
   });
 };

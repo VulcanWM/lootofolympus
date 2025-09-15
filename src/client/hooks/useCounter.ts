@@ -2,16 +2,20 @@ import { useCallback, useEffect, useState } from 'react';
 import type { InitResponse, IncrementResponse, DecrementResponse } from '../../shared/types/api';
 
 interface CounterState {
-  count: number;
+  right: number;
+  wrong: number;
   username: string | null;
   loading: boolean;
+  collectibles: string[];
 }
 
 export const useCounter = () => {
   const [state, setState] = useState<CounterState>({
-    count: 0,
+    right: 0,
+    wrong: 0,
     username: null,
     loading: true,
+    collectibles: [],
   });
   const [postId, setPostId] = useState<string | null>(null);
 
@@ -23,7 +27,7 @@ export const useCounter = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: InitResponse = await res.json();
         if (data.type !== 'init') throw new Error('Unexpected response');
-        setState({ count: data.count, username: data.username, loading: false });
+        setState({ right: data.right, wrong: data.wrong, username: data.username, loading: false, collectibles: data.collectibles });
         setPostId(data.postId);
       } catch (err) {
         console.error('Failed to init counter', err);

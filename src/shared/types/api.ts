@@ -1,8 +1,10 @@
 export type InitResponse = {
   type: 'init';
   postId: string;
-  count: number;
+  right: number;
+  wrong: number;
   username: string;
+  collectibles: string[];
 };
 
 export type IncrementResponse = {
