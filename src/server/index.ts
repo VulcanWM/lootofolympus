@@ -30,6 +30,12 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
 
     try {
       const username = await reddit.getCurrentUsername();
+      // await redis.del(`user:${username}:right`);
+      // await redis.del(`user:${username}:wrong`);
+      // await redis.del(`user:${username}:collectibles`);
+      // await redis.del(`item:${postId}:claimed:${username}`);
+      // await redis.del(`item:${postId}:failed:${username}`);
+      // await redis.del(`item:${postId}:claimedUsers`);
 
       // Get user stats
       const [rightRaw, wrongRaw] = await Promise.all([
@@ -120,10 +126,15 @@ router.post<{ postId: string }, { status: 'correct' | 'wrong' | 'tooLate' | 'alr
       // ✅ right
       await Promise.all([
         redis.incrBy(`user:${username}:right`, 1),
-        redis.hSet(`user:${username}:collectibles`, { [`item:${postId}`]: postData.name }),
+        redis.hSet(`user:${username}:collectibles`, { [postData.name]: '1' }), // save collectible by name
         redis.set(`item:${postId}:claimed:${username}`, '1'),
-        redis.zAdd(`item:${postId}:claimedUsers`, { score: Date.now(), value: username }),
+        redis.zAdd(`item:${postId}:claimedUsers`, {
+          score: Date.now(),
+          member: username as string,
+        })
       ]);
+      res.json({ status: 'correct', message: `You claimed ${postData.name}!`, collectible: postData.name });
+
       res.json({ status: 'correct', message: 'You claimed the item!', collectible: postData.name });
     } else {
       // ❌ wrong
@@ -169,17 +180,14 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
   }
 });
 
-router.post('/internal/scheduler/hourly-post', async (_req, res) => {
+router.post('/internal/scheduler/hourly-post-task', async (_req, res) => {
   try {
-    const randomDelayMs = Math.floor(Math.random() * 15 * 60 * 1000); // up to 15 min
-    setTimeout(async () => {
-      const post = await createPost();
-      console.log(`[Scheduler] Random delayed post ${post.id} at ${new Date().toISOString()}`);
-    }, randomDelayMs);
+    const post = await createPost();
+    console.log(`[Scheduler] Created hourly post ${post.id} at ${new Date().toISOString()}`);
 
-    res.status(200).json({ status: 'ok', message: 'Post scheduled' });
+    res.status(200).json({ status: 'ok', postId: post.id });
   } catch (err) {
-    console.error('[Scheduler] Failed to schedule post', err);
+    console.error('[Scheduler] Failed to create post', err);
     res.status(500).json({ status: 'error', message: err instanceof Error ? err.message : String(err) });
   }
 });

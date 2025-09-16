@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { InitResponse } from '../../shared/types/api';
+import { useEffect, useState } from 'react';
+import type { InitResponse } from '../../shared/types/api';
 
 interface CounterState {
   right: number;
@@ -7,7 +7,7 @@ interface CounterState {
   username: string | null;
   loading: boolean;
   collectibles: string[];
-  itemStatus: 'idle' | 'correct' | 'wrong' | 'tooLate' | 'alreadyGot' | 'alreadyFailed';
+  itemStatus: 'idle' | 'correct' | 'wrong' | 'tooLate';
   claimCount: number;
   maxClaims: number;
 }
@@ -23,32 +23,43 @@ export const useCounter = () => {
     claimCount: 0,
     maxClaims: 100,
   });
-
   const [postId, setPostId] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     const init = async () => {
       try {
         const res = await fetch('/api/init');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: InitResponse = await res.json();
+        if (data.type !== 'init') throw new Error('Unexpected response');
+
+        if (!mounted) return;
         setState({
           right: data.right,
           wrong: data.wrong,
           username: data.username,
           loading: false,
-          collectibles: data.collectibles,
+          collectibles: Array.isArray(data.collectibles) ? data.collectibles : [],
           itemStatus: data.itemStatus,
-          claimCount: data.claimCount,
-          maxClaims: data.maxClaims,
+          claimCount: typeof data.claimCount === 'number' ? data.claimCount : 0,
+          maxClaims: typeof data.maxClaims === 'number' ? data.maxClaims : 100,
         });
         setPostId(data.postId);
       } catch (err) {
-        console.error(err);
-        setState((prev) => ({ ...prev, loading: false }));
+        console.error('Failed to init counter', err);
+        if (mounted) setState(prev => ({ ...prev, loading: false }));
       }
     };
     void init();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  return { ...state, setState };
+  return {
+    ...state,
+    postId,
+    setState, // App can update state after answer
+  } as const;
 };
