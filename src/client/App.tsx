@@ -3,26 +3,40 @@ import { context } from '@devvit/web/client';
 import { useCounter } from './hooks/useCounter';
 import { questions } from '../shared/lists';
 
-// Find image from questions list
+// Utility: find image
 const getImageForItem = (name?: string) => {
   if (!name) return undefined;
   const q = questions.find(q => q.name === name);
   return q?.imageUrl;
 };
 
-
-// Feedback component
+// Feedback box (animated)
 const Feedback = ({ message, color }: { message: string; color: string }) => (
-  <div className={`mt-4 p-3 rounded-xl text-center ${
-    color === 'green' ? 'bg-green-100 text-green-800' :
-      color === 'red' ? 'bg-red-100 text-red-800' :
-        'bg-yellow-100 text-yellow-800'
-  }`}>
+  <div
+    className={`mt-4 p-3 rounded-xl text-center font-semibold border shadow-sm animate-fadeIn ${
+      color === 'green'
+        ? 'bg-green-100 text-green-800 border-green-300'
+        : color === 'red'
+          ? 'bg-red-100 text-red-800 border-red-300'
+          : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+    }`}
+  >
     {message}
+    <style>
+      {`
+        @keyframes fadeIn {
+          0% { opacity: 0; transform: scale(0.9); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}
+    </style>
   </div>
 );
 
-// Profile component
+// Profile page
 const Profile = ({ username, collectibles, right, wrong, onBack }: any) => {
   // Group items by set
   const setsMap: Record<string, { name: string; imageUrl: string }[]> = {};
@@ -32,10 +46,17 @@ const Profile = ({ username, collectibles, right, wrong, onBack }: any) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8f1e1] to-[#e9dcc4] text-gray-900 p-6">
-      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h1 className="text-3xl font-bold text-center mb-4">{username}’s Profile</h1>
+    <div className="min-h-screen bg-gradient-to-b from-[#fdf6e3] to-[#e6d3a3] text-gray-900 p-6 font-sans">
+      {/* Header */}
+      <header className="flex items-center justify-center bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] text-white py-4 shadow-md rounded-b-xl mb-6">
+        <img src="/trident.png" alt="Loot of Olympus" className="w-8 h-8 mr-2" />
+        <h1 style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-3xl tracking-wide">Loot of Olympus</h1>
+      </header>
 
+      <div className="max-w-3xl mx-auto bg-white/90 rounded-xl shadow-lg p-6 border border-[#d6b370]">
+        <h2 style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-2xl text-center mb-4">{username}’s Profile</h2>
+
+        {/* Stats */}
         <div className="flex justify-around mb-6">
           <div className="text-center">
             <p className="font-semibold">Right</p>
@@ -51,27 +72,34 @@ const Profile = ({ username, collectibles, right, wrong, onBack }: any) => {
           </div>
         </div>
 
+        {/* Collectible sets */}
         {Object.entries(setsMap).map(([setName, items]) => (
           <div key={setName} className="mb-8">
-            <h2 className="text-xl font-semibold mb-3">{setName}</h2>
+            <h3 style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-xl mb-3">{setName}</h3>
             <div className="grid grid-cols-3 gap-4">
               {items.map(item => {
-                const ownedNames = collectibles.map(c => (typeof c === 'string' ? c : c.name));
+                const ownedNames = collectibles.map((c: any) =>
+                  typeof c === 'string' ? c : c.name
+                );
                 const owned = ownedNames.includes(item.name);
 
                 return (
                   <div
                     key={item.name}
-                    className={`p-3 rounded-lg border text-center ${
-                      owned ? 'bg-[#fcf9f4] border-[#d6b370]' : 'bg-gray-200 border-gray-400'
+                    className={`p-3 rounded-lg border text-center transition transform ${
+                      owned
+                        ? 'bg-[#fcf9f4] border-[#cfa14a] shadow-md hover:scale-105'
+                        : 'bg-gray-200 border-gray-400 opacity-60 grayscale'
                     }`}
                   >
                     <img
                       src={item.imageUrl}
                       alt={item.name}
-                      className={`w-16 h-16 object-contain mx-auto mb-2 ${owned ? '' : 'opacity-40 grayscale'}`}
+                      className="w-16 h-16 object-contain mx-auto mb-2"
                     />
-                    <p className="text-sm">{owned ? item.name : 'Locked'}</p>
+                    <p style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-sm">
+                      {owned ? item.name : 'Locked'}
+                    </p>
                   </div>
                 );
               })}
@@ -81,16 +109,16 @@ const Profile = ({ username, collectibles, right, wrong, onBack }: any) => {
 
         <button
           onClick={onBack}
-          className="mt-6 px-4 py-2 rounded-xl bg-gray-500 hover:bg-gray-700 text-white transition"
+          className="mt-6 px-4 py-2 rounded-xl bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] hover:from-[#9c6b30] hover:to-[#cfa14a] text-white font-semibold shadow-lg transition"
         >
-          Back
+          ← Back
         </button>
       </div>
     </div>
   );
 };
 
-// Main App component
+// Main App
 export const App = () => {
   const {
     right,
@@ -104,12 +132,12 @@ export const App = () => {
     setState: setCounterState,
   } = useCounter();
 
-  console.log(collectibles)
-
   const postData = context.postData as typeof questions[number] | undefined;
 
   const [input, setInput] = useState('');
-  const [status, setStatus] = useState<'idle' | 'correct' | 'wrong' | 'tooLate' | 'alreadyGot' | 'alreadyFailed'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'correct' | 'wrong' | 'tooLate' | 'alreadyGot' | 'alreadyFailed'
+  >('idle');
   const [feedback, setFeedback] = useState('');
   const [claimCount, setClaimCount] = useState(0);
   const [view, setView] = useState<'main' | 'profile'>('main');
@@ -158,7 +186,11 @@ export const App = () => {
 
       setCounterState(prev => {
         const newCollectibles = [...prev.collectibles];
-        if (data.status === 'correct' && data.collectible && !newCollectibles.includes(data.collectible)) {
+        if (
+          data.status === 'correct' &&
+          data.collectible &&
+          !newCollectibles.includes(data.collectible)
+        ) {
           newCollectibles.push(data.collectible);
         }
         return {
@@ -175,10 +207,53 @@ export const App = () => {
   };
 
   const isLocked = status !== 'idle';
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#fdf6e3] to-[#e6d3a3] text-gray-900">
+        {/* Animated Icon */}
+        <div className="animate-spin mb-6">
+          <img
+            src="/trident.png"
+            alt="Loading"
+            className="w-16 h-16 drop-shadow-md"
+          />
+        </div>
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+        {/* Title */}
+        <h1
+          style={{ fontFamily: "'Cinzel Decorative', serif" }}
+          className="text-2xl mb-2 text-[#9c6b30] tracking-wide"
+        >
+          Loot of Olympus
+        </h1>
 
-  // Show Profile page
+        {/* Subtitle */}
+        <p className="text-gray-700 italic">Summoning your challenge...</p>
+
+        {/* Progress shimmer bar */}
+        <div className="relative w-48 h-2 mt-6 bg-[#e6d3a3] rounded-full overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] animate-[shimmer_2s_infinite]"></div>
+        </div>
+
+        <style>
+          {`
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+          .animate-[shimmer_2s_infinite] {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            animation: shimmer 2s linear infinite;
+          }
+        `}
+        </style>
+      </div>
+    );
+  }
+
+  // Profile page
   if (view === 'profile') {
     return (
       <Profile
@@ -191,65 +266,127 @@ export const App = () => {
     );
   }
 
-  // Main quiz page
+  // Main quiz
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#f8f1e1] to-[#e9dcc4] text-gray-900 p-6">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#fdf6e3] to-[#e6d3a3] text-gray-900 p-6 font-sans">
+      {/* Header */}
+      <header className="absolute top-0 left-0 right-0 flex items-center justify-center bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] text-white py-3 shadow-md rounded-b-xl">
+        <img src="/trident.png" alt="Loot of Olympus" className="w-7 h-7 mr-2" />
+        <h1 style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-2xl tracking-wide">Loot of Olympus</h1>
+      </header>
 
-      {/* Profile button top-right */}
-      <div className="absolute top-4 right-4">
+      {/* Profile button */}
+      <div className="absolute top-20 right-4">
         <button
           onClick={() => setView('profile')}
-          className="px-4 py-2 bg-[#b5854a] hover:bg-[#8b5e34] text-white rounded-xl shadow-lg"
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] hover:from-[#9c6b30] hover:to-[#cfa14a] text-white font-semibold shadow-md transition"
         >
           Profile
         </button>
       </div>
 
-      {(status === "alreadyGot" || status === "correct") && (
-        <img
-          src={getImageForItem(postData?.name)}
-          alt={postData?.name}
-          className="w-32 h-32 object-contain mb-4 drop-shadow-lg"
-        />
-      )}
-
-      {status === 'tooLate' && <h2 className="text-xl font-semibold text-red-700">⛔ Too late — max claims reached</h2>}
-      {status === 'alreadyGot' && <Feedback message={`✅ You already claimed ${postData?.name}`} color="green" />}
-      {status === 'alreadyFailed' && <Feedback message={`❌ You already failed this item`} color="red" />}
-
-      {status === 'idle' && (
-        <>
-          <h1 className="text-2xl font-bold text-center mb-2">{postData?.question}</h1>
-          <p className="text-sm text-gray-700 italic mb-4">{postData?.setName}</p>
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Your answer..."
-              disabled={isLocked}
-              className={`px-3 py-2 border border-[#d6b370] rounded-xl bg-[#fcf9f4] focus:outline-none focus:ring-2 focus:ring-[#c69c6d] text-gray-800 ${
-                isLocked ? 'bg-gray-200 cursor-not-allowed' : ''
-              }`}
+      <div className="mt-28 flex flex-col items-center w-full max-w-xl bg-white/90 rounded-xl shadow-lg p-6 border border-[#d6b370]">
+        {(status === 'alreadyGot' || status === 'correct') && (
+          <div className="relative">
+            <img
+              src={getImageForItem(postData?.name)}
+              alt={postData?.name}
+              className="w-32 h-32 object-contain mb-4 drop-shadow-lg animate-pop"
             />
-            <button
-              onClick={checkAnswer}
-              disabled={isLocked || input.trim() === ''}
-              className={`px-4 py-2 rounded-xl transition text-white ${
-                isLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#b5854a] hover:bg-[#8b5e34]'
-              }`}
-            >
-              Submit
-            </button>
+            {status === 'correct' && (
+              <>
+                <div className="sparkle top-0 left-10" />
+                <div className="sparkle top-8 right-0" />
+                <div className="sparkle bottom-0 left-6" />
+              </>
+            )}
           </div>
-        </>
-      )}
+        )}
 
-      {status === 'correct' && <Feedback message={`✅ You claimed ${postData?.name}`} color="green" />}
-      {status === 'wrong' && <Feedback message={`❌ Wrong answer — item locked`} color="red" />}
+        {status === 'tooLate' && (
+          <h2 style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-xl text-red-700 mb-2">
+            ⛔ Too late — max claims reached
+          </h2>
+        )}
+        {status === 'alreadyGot' && (
+          <Feedback message={`✅ You already claimed ${postData?.name}`} color="green" />
+        )}
+        {status === 'alreadyFailed' && (
+          <Feedback message={`❌ You already failed this item`} color="red" />
+        )}
 
-      <p className="mt-4 text-sm text-gray-600">Claimed: {claimCount} / {maxClaims}</p>
-      {feedback && <p className="mt-2 text-gray-700 italic text-center">{feedback}</p>}
+        {status === 'idle' && (
+          <>
+            <h2 style={{ fontFamily: "'Cinzel Decorative', serif" }} className="text-2xl text-center mb-2">
+              {postData?.question}
+            </h2>
+            <p className="text-sm text-gray-700 italic mb-4">{postData?.setName}</p>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Your answer..."
+                disabled={isLocked}
+                className={`px-3 py-2 border border-[#d6b370] rounded-xl bg-[#fcf9f4] focus:outline-none focus:ring-2 focus:ring-[#cfa14a] text-gray-800 ${
+                  isLocked ? 'bg-gray-200 cursor-not-allowed' : ''
+                }`}
+              />
+              <button
+                onClick={checkAnswer}
+                disabled={isLocked || input.trim() === ''}
+                className={`px-4 py-2 rounded-xl transition text-white font-semibold shadow-md ${
+                  isLocked
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] hover:from-[#9c6b30] hover:to-[#cfa14a]'
+                }`}
+              >
+                Submit
+              </button>
+            </div>
+          </>
+        )}
+
+        {status === 'correct' && (
+          <Feedback message={`✅ You claimed ${postData?.name}`} color="green" />
+        )}
+        {status === 'wrong' && (
+          <Feedback message={`❌ Wrong answer — item locked`} color="red" />
+        )}
+
+        <p className="mt-4 text-sm text-gray-600">
+          Claimed: {claimCount} / {maxClaims}
+        </p>
+        {(status != "correct" && status != "wrong" && status != "alreadyGot" && status != "alreadyFailed") && feedback && (
+          <p className="mt-2 text-gray-700 italic text-center">{feedback}</p>
+        )}
+      </div>
+
+      <style>
+        {`
+          @keyframes pop {
+            0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0); }
+          }
+          .animate-pop {
+            animation: pop 0.6s ease-out;
+          }
+
+          @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.2); }
+          }
+          .sparkle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #fff 0%, transparent 70%);
+            border-radius: 50%;
+            animation: sparkle 1s ease-out forwards;
+          }
+        `}
+      </style>
     </div>
   );
 };
