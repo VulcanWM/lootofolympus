@@ -35,7 +35,7 @@
     "tasks": {
       "hourly-post-task": {
         "endpoint": "/internal/scheduler/hourly-post-task",
-        "cron": "0 * * * *"
+        "cron": "0 */3 * * *"
       }
     }
   }

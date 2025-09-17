@@ -3,6 +3,14 @@ import { context } from '@devvit/web/client';
 import { useCounter } from './hooks/useCounter';
 import { questions } from '../shared/lists';
 
+// Find image from questions list
+const getImageForItem = (name?: string) => {
+  if (!name) return undefined;
+  const q = questions.find(q => q.name === name);
+  return q?.imageUrl;
+};
+
+
 // Feedback component
 const Feedback = ({ message, color }: { message: string; color: string }) => (
   <div className={`mt-4 p-3 rounded-xl text-center ${
@@ -197,8 +205,12 @@ export const App = () => {
         </button>
       </div>
 
-      {postData?.imageUrl && (
-        <img src={postData.imageUrl} alt={postData.name} className="w-32 h-32 object-contain mb-4 drop-shadow-lg" />
+      {(status === "alreadyGot" || status === "correct") && (
+        <img
+          src={getImageForItem(postData?.name)}
+          alt={postData?.name}
+          className="w-32 h-32 object-contain mb-4 drop-shadow-lg"
+        />
       )}
 
       {status === 'tooLate' && <h2 className="text-xl font-semibold text-red-700">⛔ Too late — max claims reached</h2>}

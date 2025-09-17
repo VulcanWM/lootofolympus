@@ -21,7 +21,7 @@ export const useCounter = () => {
     collectibles: [],
     itemStatus: 'idle',
     claimCount: 0,
-    maxClaims: 100,
+    maxClaims: 10,
   });
   const [postId, setPostId] = useState<string | null>(null);
 
@@ -43,7 +43,7 @@ export const useCounter = () => {
           collectibles: Array.isArray(data.collectibles) ? data.collectibles : [],
           itemStatus: data.itemStatus,
           claimCount: typeof data.claimCount === 'number' ? data.claimCount : 0,
-          maxClaims: typeof data.maxClaims === 'number' ? data.maxClaims : 100,
+          maxClaims: typeof data.maxClaims === 'number' ? data.maxClaims : 10,
         });
         setPostId(data.postId);
       } catch (err) {

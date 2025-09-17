@@ -30,6 +30,7 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
 
     try {
       const username = await reddit.getCurrentUsername();
+
       // await redis.del(`user:${username}:right`);
       // await redis.del(`user:${username}:wrong`);
       // await redis.del(`user:${username}:collectibles`);
@@ -48,18 +49,25 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
       // Get all collectibles of the user
       const collectibles = await redis.hKeys(`user:${username}:collectibles`);
 
+      // Get current post's collectible
+      const postData = context.postData as unknown as { name: string };
+
+      // Check if user owns this collectible already
+      const alreadyOwns = postData?.name ? collectibles.includes(postData.name) : false;
+
       // Check if user has claimed this specific post/item
       const hasClaimed = await redis.exists(`item:${postId}:claimed:${username}`);
       const hasFailed = await redis.exists(`item:${postId}:failed:${username}`);
 
       // Check how many people have claimed this item (using zSet)
       const claimCount = await redis.zCard(`item:${postId}:claimedUsers`) ?? 0;
-      const maxClaims = 100;
+      const maxClaims = 10;
       const isClaimLimitReached = claimCount >= maxClaims;
 
       // Determine status to return to client
       let itemStatus: 'idle' | 'correct' | 'wrong' | 'tooLate' = 'idle';
-      if (hasClaimed) itemStatus = 'correct';
+      if (alreadyOwns) itemStatus = 'correct';
+      else if (hasClaimed) itemStatus = 'correct';
       else if (hasFailed) itemStatus = 'wrong';
       else if (isClaimLimitReached) itemStatus = 'tooLate';
 
@@ -85,7 +93,7 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
   }
 );
 
-router.post<{ postId: string }, { status: 'correct' | 'wrong' | 'tooLate' | 'alreadyGot' | 'alreadyFailed' ; message: string; collectible?: string }, { answer: string }>(
+router.post<{ postId: string }, { status: 'correct' | 'wrong' | 'tooLate' | 'alreadyGot' | 'alreadyFailed'; message: string; collectible?: string; claimCount?: number }, { answer: string }>(
   '/api/answer',
   async (req, res) => {
     const { postId } = context;
@@ -97,11 +105,24 @@ router.post<{ postId: string }, { status: 'correct' | 'wrong' | 'tooLate' | 'alr
       return;
     }
 
-    // Check if user already answered
+    // Get all collectibles of the user
+    const collectibles = await redis.hKeys(`user:${username}:collectibles`);
+
+    // Get current post's collectible
+    const postData = context.postData as unknown as { name: string, answer: string };
+
+    // Check if user owns this collectible already
+    const alreadyOwns = postData?.name ? collectibles.includes(postData.name) : false;
+    if (alreadyOwns) {
+      res.json({ status: 'alreadyGot', message: `You already claimed ${postData.name}`, collectible: postData.name });
+      return;
+    }
+
+    // Check if user already answered this post
     const hasClaimed = await redis.exists(`item:${postId}:claimed:${username}`);
     const hasFailed = await redis.exists(`item:${postId}:failed:${username}`);
     if (hasClaimed) {
-      res.json({ status: 'alreadyGot', message: 'You already got this item!', collectible: `item:${postId}` });
+      res.json({ status: 'alreadyGot', message: 'You already got this item!', collectible: postData.name });
       return;
     }
     if (hasFailed) {
@@ -111,33 +132,36 @@ router.post<{ postId: string }, { status: 'correct' | 'wrong' | 'tooLate' | 'alr
 
     // Check claim limit
     const claimCount = await redis.zCard(`item:${postId}:claimedUsers`);
-    const maxClaims = 100;
+    const maxClaims = 10;
     if (claimCount >= maxClaims) {
-      res.json({ status: 'tooLate', message: 'Too late! Max claims reached.', collectible: `item:${postId}` });
+      res.json({ status: 'tooLate', message: 'Too late! Max claims reached.', collectible: postData.name });
       return;
     }
 
-    // Get correct answer from context
-    const postData = context.postData as unknown as { answer: string; name: string };
+    // Validate answer
     const correctAnswer = postData.answer.trim().toLowerCase();
     const isCorrect = answer.trim().toLowerCase() === correctAnswer;
 
     if (isCorrect) {
-      // ✅ right
       await Promise.all([
         redis.incrBy(`user:${username}:right`, 1),
-        redis.hSet(`user:${username}:collectibles`, { [postData.name]: '1' }), // save collectible by name
+        redis.hSet(`user:${username}:collectibles`, { [postData.name]: '1' }),
         redis.set(`item:${postId}:claimed:${username}`, '1'),
         redis.zAdd(`item:${postId}:claimedUsers`, {
           score: Date.now(),
           member: username as string,
         })
       ]);
-      res.json({ status: 'correct', message: `You claimed ${postData.name}!`, collectible: postData.name });
 
-      res.json({ status: 'correct', message: 'You claimed the item!', collectible: postData.name });
+      const newClaimCount = await redis.zCard(`item:${postId}:claimedUsers`);
+
+      res.json({
+        status: 'correct',
+        message: `You claimed ${postData.name}!`,
+        collectible: postData.name,
+        claimCount: newClaimCount
+      });
     } else {
-      // ❌ wrong
       await Promise.all([
         redis.incrBy(`user:${username}:wrong`, 1),
         redis.set(`item:${postId}:failed:${username}`, '1'),
@@ -146,6 +170,7 @@ router.post<{ postId: string }, { status: 'correct' | 'wrong' | 'tooLate' | 'alr
     }
   }
 );
+
 
 router.post('/internal/on-app-install', async (_req, res): Promise<void> => {
   try {
