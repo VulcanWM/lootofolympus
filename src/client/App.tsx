@@ -396,9 +396,19 @@ export const App = () => {
           <Feedback message={`❌ Wrong answer — item locked`} color="red" />
         )}
 
-        <p className="mt-4 text-sm text-gray-600">
-          Claimed: {claimCount} / {maxClaims}
-        </p>
+        <div className="w-full mt-4">
+          <p className="mb-1 text-sm text-gray-700">Question Claims</p>
+          <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden border border-[#d6b370]">
+            <div
+              className="h-full bg-gradient-to-r from-[#cfa14a] to-[#9c6b30] transition-all duration-500"
+              style={{ width: `${(claimCount / (maxClaims || 1)) * 100}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-600 mt-1 text-right">
+            {claimCount} / {maxClaims}
+          </p>
+        </div>
+
         {(status != "correct" && status != "wrong" && status != "alreadyGot" && status != "alreadyFailed") && feedback && (
           <p className="mt-2 text-gray-700 italic text-center">{feedback}</p>
         )}
