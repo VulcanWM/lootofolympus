@@ -142,6 +142,41 @@ export const App = () => {
   const [claimCount, setClaimCount] = useState(0);
   const [view, setView] = useState<'main' | 'profile'>('main');
 
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  const getNextChallengeTime = () => {
+    const now = new Date();
+    const utcHours = now.getUTCHours();
+    const nextHour = Math.ceil((utcHours + 1) / 3) * 3;
+    const next = new Date(now);
+    next.setUTCHours(nextHour % 24, 0, 0, 0);
+    if (nextHour >= 24) {
+      // move to next day if we wrapped around
+      next.setUTCDate(next.getUTCDate() + 1);
+    }
+    return next;
+  };
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const next = getNextChallengeTime();
+      setTimeLeft(Math.max(0, Math.floor((next.getTime() - now.getTime()) / 1000)));
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ⏳ NEW: format seconds as HH:MM:SS
+  const formatTime = (secs: number) => {
+    const h = Math.floor(secs / 3600).toString().padStart(2, '0');
+    const m = Math.floor((secs % 3600) / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
   useEffect(() => {
     if (!loading) {
       switch (itemStatus) {
@@ -314,6 +349,13 @@ export const App = () => {
         {status === 'alreadyFailed' && (
           <Feedback message={`❌ You already failed this item`} color="red" />
         )}
+
+        {['correct', 'wrong', 'alreadyGot', 'alreadyFailed'].includes(status) && (
+          <p className="mt-4 text-sm font-semibold text-gray-800">
+            ⏳ Next challenge in {formatTime(timeLeft)}
+          </p>
+        )}
+
 
         {status === 'idle' && (
           <>
